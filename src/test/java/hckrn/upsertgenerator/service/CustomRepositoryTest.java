@@ -30,7 +30,7 @@ class CustomRepositoryTest implements PostgresTest {
         for (int i = 1; i <= 5; i++) {
             System.out.println("____________Run #" + i + "______________");
             testResults.add(testExecutionTime());
-            System.out.println("____________Run #" + i + "______________");
+            System.out.println("____________Run #" + i + "______________\n");
         }
 
         int average = (int) testResults.stream().mapToDouble(value -> value).average().orElseThrow();
