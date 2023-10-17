@@ -1,5 +1,6 @@
 package hckrn.upsertgenerator.service;
 
+import hckrn.upsertgenerator.PostgresTest;
 import hckrn.upsertgenerator.data.Student;
 import hckrn.upsertgenerator.data.repository.StudentRepository;
 import org.assertj.core.api.Assertions;
@@ -14,9 +15,8 @@ import java.util.List;
 
 
 @SpringBootTest
-class CustomRepositoryTest {
-
-    SecureRandom random = new SecureRandom();
+class CustomRepositoryTest implements PostgresTest {
+    private final SecureRandom random = new SecureRandom();
 
     @Autowired
     CustomRepository customRepository;
@@ -24,15 +24,32 @@ class CustomRepositoryTest {
     @Autowired
     StudentRepository studentRepository;
 
+
     @Test
     void shouldFindExecutionSpeedForUpsertAndRepoSaving() {
-        studentRepository.deleteAll();
+        List<Long> testResults = new LinkedList<>();
+        for (int i = 1; i <= 5; i++) {
+            System.out.println("____________Run #" + i + "______________");
+            testResults.add(testSpeed());
+            System.out.println("____________Run #" + i + "______________");
+        }
 
-        List<Student> students = generateStudentList(10000);
+        int average = (int) testResults.stream().mapToDouble(value -> value).average().orElseThrow();
+        System.out.printf("Upsert is %d times faster on average\n", average);
+    }
 
-        long repoSavingMillis = saveUsingRepository(students);
+    private long testSpeed() {
+        List<Student> students = generateStudentList(random.nextInt(10_000, 100_000));
+
         long upsertSavingMillis = saveUsingUpsert(students);
+        long repoSavingMillis = saveUsingRepository(students);
+
         Assertions.assertThat(upsertSavingMillis).isLessThan(repoSavingMillis);
+
+        long rate = repoSavingMillis / upsertSavingMillis;
+        System.out.printf("Upsert is %d times faster\n", rate);
+
+        return rate;
     }
 
     private List<Student> generateStudentList(int listSize) {
