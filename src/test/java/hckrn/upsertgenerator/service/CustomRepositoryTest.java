@@ -24,13 +24,12 @@ class CustomRepositoryTest implements PostgresTest {
     @Autowired
     StudentRepository studentRepository;
 
-
     @Test
     void shouldFindExecutionSpeedForUpsertAndRepoSaving() {
         List<Long> testResults = new LinkedList<>();
         for (int i = 1; i <= 5; i++) {
             System.out.println("____________Run #" + i + "______________");
-            testResults.add(testSpeed());
+            testResults.add(testExecutionTime());
             System.out.println("____________Run #" + i + "______________");
         }
 
@@ -38,7 +37,7 @@ class CustomRepositoryTest implements PostgresTest {
         System.out.printf("Upsert is %d times faster on average\n", average);
     }
 
-    private long testSpeed() {
+    private long testExecutionTime() {
         List<Student> students = generateStudentList(random.nextInt(10_000, 100_000));
 
         long upsertSavingMillis = saveUsingUpsert(students);
