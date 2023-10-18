@@ -15,7 +15,6 @@ import java.lang.reflect.Field;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.regex.Pattern;
 
 import static java.util.Objects.isNull;
@@ -40,7 +39,7 @@ public class CustomRepository {
     public String generateUpsertQuery(Class<?> aClass) {
         Table tableAnnotation = extractTableAnnotation(aClass);
         EntityFieldsDescription fieldsDescription = extractEntityInfo(aClass);
-        String tablePath = extractTablePath(tableAnnotation);
+        String tablePath = extractTablePath(tableAnnotation, aClass.getSimpleName());
 
         return generateUpsertQuery(fieldsDescription, tablePath);
     }
@@ -72,8 +71,13 @@ public class CustomRepository {
         return tableAnnotation;
     }
 
-    private String extractTablePath(Table tableAnnotation) {
+    private String extractTablePath(Table tableAnnotation, String className) {
         var table = tableAnnotation.name();
+
+        if (!StringUtils.hasText(table)) {
+            table = toLowerUnderscoreCase(className);
+        }
+
         if (StringUtils.hasText(tableAnnotation.schema())) {
             return tableAnnotation.schema() + "." + table;
         }
@@ -86,20 +90,28 @@ public class CustomRepository {
         List<String> fields = new LinkedList<>();
         var id = "id";
         for (Field field : declaredFields) {
-            String name = field.getName();
-            String column = Optional.ofNullable(field.getAnnotation(Column.class))
-                    .map(Column::name)
-                    .orElseGet(() -> toLowerUnderscoreCase(name));
+            String fieldName = field.getName();
 
-            columns.add(column);
-            fields.add(name);
+            Column columnAnnotation = field.getAnnotation(Column.class);
+            String columnName = extractColumnName(columnAnnotation, fieldName);
+
+            columns.add(columnName);
+            fields.add(fieldName);
 
             if (Objects.nonNull(field.getAnnotation(Id.class))) {
-                id = column;
+                id = columnName;
             }
         }
 
         return new EntityFieldsDescription(columns, fields, id);
+    }
+
+    private String extractColumnName(Column annotation, String fieldName) {
+        if (Objects.isNull(annotation) || !StringUtils.hasText(annotation.name())) {
+            return toLowerUnderscoreCase(fieldName);
+        } else {
+            return annotation.name();
+        }
     }
 
     private String toLowerUnderscoreCase(String camelCaseText) {
