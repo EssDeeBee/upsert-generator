@@ -1,3 +1,4 @@
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=EssDeeBee_upsert-generator&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=EssDeeBee_upsert-generator)
 # upsert-generator
 Generate effective upsert SQL scripts for fast inserting to a DB
 
